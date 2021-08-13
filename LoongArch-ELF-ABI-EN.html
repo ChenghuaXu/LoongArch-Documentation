@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.16">
+<meta name="author" content="Loongson Technology Corporation Limited">
+<title>LoongArch ELF ABI specification</title>
+<style>
+/**
+ * This is an empty stylesheet.
+ * We use a JS switcher to rendere the contents with any of the available asciidoctor skins.
+ * The JS switcher comes from https://github.com/darshandsoni/asciidoctor-skins.
+ * This file is necessary, otherwise Asciidoctor will use the default theme.
+ * We just leave this CSS file empty to avoid redundant rendering.
+ */
+
+</style>
+</head>
+<body class="article">
+<div id="header">
+<h1>LoongArch ELF ABI specification</h1>
+<div class="details">
+<span id="author" class="author">Loongson Technology Corporation Limited</span><br>
+<span id="revdate">V1.00</span>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_register_convention">Register Convention</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all" style="width: 80%;">
+<caption class="title">Table 1. Integer Register Convention</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 41.6666%;">
+<col style="width: 25.0002%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Alias</th>
+<th class="tableblock halign-center valign-top">Meaning</th>
+<th class="tableblock halign-center valign-top">Preserved across calls</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$r0</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$zero</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Constant zero</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">&#8201;&#8212;&#8201;</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$r1</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$ra</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Return address</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">No</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$r2</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$tp</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Thread pointer</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">--(Unallocatable)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$r3</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$sp</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Stack pointer</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Yes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$r4-$r11</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$a0-$a7</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Argument registers</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">No</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$r4-$r5</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$v0-$v1</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Return value</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">No</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$r12-$r20</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$t0-$t8</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Temp registers</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">No</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$r21</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&#8201;&#8212;&#8201;</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Reserved</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">--(Unallocatable)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$r22</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$fp/$s9</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Frame pointer/Saved register</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Yes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$r23-$r31</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$s0-$s8</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Saved register</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Yes</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all" style="width: 80%;">
+<caption class="title">Table 2. Floating-point Register Convention</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 41.6666%;">
+<col style="width: 25.0002%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Name</th>
+<th class="tableblock halign-left valign-top">Alias</th>
+<th class="tableblock halign-center valign-top">Meaning</th>
+<th class="tableblock halign-center valign-top">Preserved across calls</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$f0-$f7</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$fa0-$fa7</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Argument registers</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">No</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$f0-$f1</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$fv0-$fv7</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Return value</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">No</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$f8-$f23</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$ft0-$ft15</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Temp registers</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">No</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$f24-$f31</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>$fs0-$fs7</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Saved register</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Yes</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_type_size_and_alignment">Type Size and Alignment</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all" style="width: 80%;">
+<caption class="title">Table 3. LP64 ABI</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 50%;">
+<col style="width: 30%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Scalar type</th>
+<th class="tableblock halign-center valign-top">Size(Bytes)</th>
+<th class="tableblock halign-center valign-top">Alignment(Bytes)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bool/_Bool</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">1</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>unsigned/signed char</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">1</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>unsigned/signed short</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">2</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>unsigned/signed int</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">4</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">4</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>unsigned/signed long</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">8</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">8</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>unsigned/signed long long</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">8</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">8</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>pointer</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">8</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">8</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>float</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">4</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">4</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>double</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">8</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">8</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>long double</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">16</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">16</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>char is signed.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_elf_object_files">ELF Object Files</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_ei_class_file_class">EI_CLASS: File class.</h3>
+<table class="tableblock frame-all grid-all" style="width: 80%;">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 50%;">
+<col style="width: 30%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">EI_CLASS</th>
+<th class="tableblock halign-center valign-top">Value</th>
+<th class="tableblock halign-center valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ELFCLASS32</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">32-bit objects</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ELFCLASS64</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">64-bit objects</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_e_machine_identifies_the_machine">e_machine: Identifies the machine.</h3>
+<div class="paragraph">
+<p>LoongArch (258)</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_e_flags_identifies_the_abis_of_this_elf_file">e_flags: Identifies the ABIs of this ELF file.</h3>
+<table class="tableblock frame-all grid-all" style="width: 80%;">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 50%;">
+<col style="width: 30%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">ABIs</th>
+<th class="tableblock halign-center valign-top">Value</th>
+<th class="tableblock halign-center valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>lp32</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0x1</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">soft float</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Reserved</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0x2</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">&#8201;&#8212;&#8201;</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>lp64</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0x3</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">64bit default ABI</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>lp32f</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0x4</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">single float</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>lp32d</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0x5</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">double float</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Reserved</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0x6--</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">&#8201;&#8212;&#8201;</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_abi_version">ABI Version:</h3>
+<table class="tableblock frame-all grid-all" style="width: 80%;">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 50%;">
+<col style="width: 30%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">ABI Version:</th>
+<th class="tableblock halign-center valign-top">Value</th>
+<th class="tableblock halign-center valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>v0</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Stack operands base relocation type.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>v1</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Another relocation type IF needed.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>&#8201;&#8212;&#8201;</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">2--</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Reserved.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_relocations">Relocations</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 4. ELF Relocation types</caption>
+<colgroup>
+<col style="width: 4.5454%;">
+<col style="width: 4.5454%;">
+<col style="width: 45.4545%;">
+<col style="width: 45.4547%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-center valign-top">Enum</th>
+<th class="tableblock halign-center valign-top">ELF reloc type</th>
+<th class="tableblock halign-center valign-top">Usage</th>
+<th class="tableblock halign-left valign-top">Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">0</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_NONE</code></p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_32</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Runtime address resolving</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int32_t *) PC = RtAddr + A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_64</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Runtime address resolving</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int64_t *) PC = RtAddr + A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">3</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_RELATIVE</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Runtime fixup for load-address</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong>(void *</strong>) PC = B + A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">4</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_COPY</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Runtime memory copy in executable</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>memcpy (PC, RtAddr, sizeof (sym))</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">5</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_JUMP_SLOT</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Runtime PLT supporting</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>implementation-defined</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">6</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_TLS_DTPMOD32</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Runtime relocation for TLS-GD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int32_t *) PC = ID of module defining sym</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">7</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_TLS_DTPMOD64</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Runtime relocation for TLS-GD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int64_t *) PC = ID of module defining sym</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">8</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_TLS_DTPREL32</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Runtime relocation for TLS-GD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int32_t *) PC = DTV-relative offset for sym</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">9</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_TLS_DTPREL64</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Runtime relocation for TLS-GD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int64_t *) PC = DTV-relative offset for sym</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">10</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_TLS_TPREL32</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Runtime relocation for TLE-IE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int32_t *) PC = T</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">11</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_TLS_TPREL64</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Runtime relocation for TLE-IE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int64_t *) PC = T</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">12</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_IRELATIVE</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Runtime local indirect function resolving</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong>(void *</strong>) PC = (void <strong>)(</strong>)( (B + A)) ()</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top" colspan="4"><p class="tableblock">&#8230;&#8203; Reserved for dynamic linker.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">20</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_MARK_LA</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Mark la.abs</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Load absolute address for static link.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">21</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_MARK_PCREL</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Mark external label branch</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Access PC relative address for static link.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">22</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_PUSH_PCREL</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Push PC-relative offset</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>push (S - PC + A)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">23</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_PUSH_ABSOLUTE</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Push constant or absolute address</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>push (S + A)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">24</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_PUSH_DUP</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Duplicate stack top</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr1 = pop (), push (opr1), push (opr1)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">25</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_PUSH_GPREL</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Push for access GOT entry</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>push (G)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">26</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_PUSH_TLS_TPREL</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Push for TLS-LE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>push (T)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">27</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_PUSH_TLS_GOT</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Push for TLS-IE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>push (IE)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">28</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_PUSH_TLS_GD</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Push for TLS-GD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>push (GD)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">29</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_PUSH_PLT_PCREL</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Push for external function calling</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>push (PLT - PC)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">30</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_ASSERT</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Assert stack top</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>assert (pop ())</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">31</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_NOT</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Stack top operation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>push (!pop ())</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">32</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_SUB</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Stack top operation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr2 = pop (), opr1 = pop (), push (opr1 - opr2)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">33</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_SL</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Stack top operation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr2 = pop (), opr1 = pop (), push (opr1 &lt;&lt; opr2)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">34</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_SR</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Stack top operation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr2 = pop (), opr1 = pop (), push (opr1 &gt;&gt; opr2)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">35</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_ADD</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Stack top operation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr2 = pop (), opr1 = pop (), push (opr1 + opr2)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">36</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_AND</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Stack top operation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr2 = pop (), opr1 = pop (), push (opr1 &amp; opr2)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">37</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_IF_ELSE</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Stack top operation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr3 = pop (), opr2 = pop (), opr1 = pop (), push (opr1 ? opr2 : opr3)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">38</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_POP_32_S_10_5</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Instruction imm-field relocation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr1 = pop (), (*(uint32_t *) PC) [14 &#8230;&#8203; 10] = opr1 [4 &#8230;&#8203; 0]</code>
+ with check 5-bit signed overflow</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">39</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_POP_32_U_10_12</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Instruction imm-field relocation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr1 = pop (), (*(uint32_t *) PC) [21 &#8230;&#8203; 10] = opr1 [11 &#8230;&#8203; 0]</code>
+ with check 12-bit unsigned overflow</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">40</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_POP_32_S_10_12</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Instruction imm-field relocation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr1 = pop (), (*(uint32_t *) PC) [21 &#8230;&#8203; 10] = opr1 [11 &#8230;&#8203; 0]</code>
+ with check 12-bit signed overflow</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">41</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_POP_32_S_10_16</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Instruction imm-field relocation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr1 = pop (), (*(uint32_t *) PC) [25 &#8230;&#8203; 10] = opr1 [15 &#8230;&#8203; 0]</code>
+ with check 16-bit signed overflow</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">42</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_POP_32_S_10_16_S2</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Instruction imm-field relocation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr1 = pop (), (*(uint32_t *) PC) [25 &#8230;&#8203; 10] = opr1 [17 &#8230;&#8203; 2]</code>
+ with check 18-bit signed overflow and 4-bit aligned</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">43</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_POP_32_S_5_20</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Instruction imm-field relocation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr1 = pop (), (*(uint32_t *) PC) [24 &#8230;&#8203; 5] = opr1 [19 &#8230;&#8203; 0]</code>
+ with check 20-bit signed overflow</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">44</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_POP_32_S_0_5_10_16_S2</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Instruction imm-field relocation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr1 = pop (), (<strong>(uint32_t *) PC) [4 &#8230;&#8203; 0] = opr1 [22 &#8230;&#8203; 18],</code>
+<code>(</strong>(uint32_t *) PC) [25 &#8230;&#8203; 10] = opr1 [17 &#8230;&#8203; 2]</code>
+ with check 23-bit signed overflow and 4-bit aligned</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">45</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_POP_32_S_0_10_10_16_S2</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Instruction imm-field relocation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>opr1 = pop (), (<strong>(uint32_t *) PC) [9 &#8230;&#8203; 0] = opr1 [27 &#8230;&#8203; 18],</code>
+<code>(</strong>(uint32_t *) PC) [25 &#8230;&#8203; 10] = opr1 [17 &#8230;&#8203; 2]</code>
+ with check 28-bit signed overflow and 4-bit aligned</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">46</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SOP_POP_32_U</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">Instruction fixup</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>(*(uint32_t *) PC) = pop ()</code> with check 32-bit unsigned overflow</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">47</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_ADD8</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">8-bit in-place addition</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int8_t *) PC += S + A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">48</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_ADD16</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">16-bit in-place addition</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int16_t *) PC += S + A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">49</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_ADD24</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">24-bit in-place addition</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int24_t *) PC += S + A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">50</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_ADD32</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">32-bit in-place addition</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int32_t *) PC += S + A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">51</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_ADD64</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">64-bit in-place addition</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int64_t *) PC += S + A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">52</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SUB8</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">8-bit in-place subtraction</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int8_t *) PC -= S + A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">53</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SUB16</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">16-bit in-place subtraction</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int16_t *) PC -= S + A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">54</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SUB24</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">24-bit in-place subtraction</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int24_t *) PC -= S + A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">55</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SUB32</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">32-bit in-place subtraction</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int32_t *) PC -= S + A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">56</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_SUB64</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">64-bit in-place subtraction</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>*(int64_t *) PC -= S + A</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">57</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_GNU_VTINHERIT</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">GNU C++ vtable hierarchy</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">58</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock"><code>R_LARCH_GNU_VTENTRY</code></p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">GNU C++ vtable member usage</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2021-08-13 03:56:25 UTC
+</div>
+</div>
+</body>
+</html>
